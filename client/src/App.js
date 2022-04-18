@@ -6,7 +6,7 @@ function App() {
   return (
     <div>
       <Navbar />
-      <div class="container mx-auto border border-slate-400 mt-4">
+      <div className="container mx-auto border border-slate-400 mt-4">
         <NewMessageForm />
       </div>
     </div>
