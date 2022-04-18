@@ -1,7 +1,7 @@
 const NewMessageForm = () => {
   return (
     <div>
-      <h3 class="text-2xl text-center">Create Message</h3>
+      <h3 class="text-4xl text-center text-blue-400">Create Message</h3>
     </div>
   );
 };
