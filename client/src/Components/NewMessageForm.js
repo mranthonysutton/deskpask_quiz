@@ -90,6 +90,15 @@ const NewMessageForm = () => {
               </label>
             </div>
           </div>
+          <label htmlFor="interval-duration" className={labelStyles}>
+            How often
+          </label>
+          <input type="number" name="interval-duration" className="mb-4" />
+          <select>
+            <option value="">Minute(s)</option>
+            <option value="">Hour(s)</option>
+            <option value="">Day(s)</option>
+          </select>
         </form>
         <div className="flex justify-center w-2/3 mx-auto">
           <button className="bg-blue-500 text-white py-2 w-40 rounded-md text-xl hover:bg-blue-800 duration-200 my-4 mx-8">
