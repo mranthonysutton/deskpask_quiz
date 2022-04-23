@@ -21,7 +21,11 @@ const NewMessageForm = () => {
     var { name, value } = evt.target;
 
     // Converts the the value of scheduled and repeats to an integer
-    if (name === 'scheduled' || name === 'repeats') {
+    if (
+      name === 'scheduled' ||
+      name === 'repeats' ||
+      name === 'intervalLength'
+    ) {
       value = parseInt(value);
       setMessageForm({ ...messageForm, [name]: parseInt(value) });
       return;
@@ -76,7 +80,6 @@ const NewMessageForm = () => {
                 type="radio"
                 name="scheduled"
                 id="schedule-now"
-                defaultChecked={true}
                 value={0}
                 onChange={handleFormChange}
                 checked={messageForm['scheduled'] === 0}
@@ -142,9 +145,9 @@ const NewMessageForm = () => {
                 type="radio"
                 name="repeats"
                 id="repeats-false"
-                checked={messageForm['repeats'] === 0}
                 value={0}
                 onChange={handleFormChange}
+                checked={messageForm['repeats'] === 0}
               />
               <label
                 className="form-check-label inline-block text-gray-800 cursor-pointer"
@@ -159,9 +162,9 @@ const NewMessageForm = () => {
                 type="radio"
                 name="repeats"
                 id="repeats-true"
-                checked={messageForm['repeats'] === 1}
                 value={1}
                 onChange={handleFormChange}
+                checked={messageForm['repeats'] === 1}
               />
               <label
                 className="form-check-label inline-block text-gray-800 mb-4"
@@ -182,7 +185,6 @@ const NewMessageForm = () => {
                   name="intervalLength"
                   className="mb-4"
                   min={1}
-                  defaultValue={1}
                   onChange={handleFormChange}
                   value={messageForm['intervalLength']}
                 />
