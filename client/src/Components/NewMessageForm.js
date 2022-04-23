@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 
 const NewMessageForm = () => {
   const labelStyles = 'uppercase text-sm opacity-80 font-bold';
@@ -16,11 +17,12 @@ const NewMessageForm = () => {
   };
 
   const [messageForm, setMessageForm] = useState(defaultFormState);
+  const navigate = useNavigate();
 
   const handleFormChange = (evt) => {
     var { name, value } = evt.target;
 
-    // Converts the the value of scheduled and repeats to an integer
+    // Converts the the value of scheduled, repeats, and intervalLength to an integer before storing in state
     if (
       name === 'scheduled' ||
       name === 'repeats' ||
@@ -38,6 +40,8 @@ const NewMessageForm = () => {
     evt.preventDefault();
     console.log('Form submitted', messageForm);
     setMessageForm({ ...defaultFormState });
+
+    navigate('/');
   };
 
   return (
@@ -211,9 +215,11 @@ const NewMessageForm = () => {
             >
               Schedule task
             </button>
-            <button className="bg-red-600 text-white py-2 w-40 rounded-md text-xl hover:bg-red-700 duration-200 my-4 mx-8">
-              Cancel task
-            </button>
+            <Link to="/">
+              <button className="bg-red-600 text-white py-2 w-40 rounded-md text-xl hover:bg-red-700 duration-200 my-4 mx-8">
+                Cancel task
+              </button>
+            </Link>
           </div>
         </form>
       </div>
