@@ -18,12 +18,22 @@ const NewMessageForm = () => {
   const [messageForm, setMessageForm] = useState(defaultFormState);
 
   const handleFormChange = (evt) => {
-    setMessageForm({ ...messageForm, [evt.target.name]: evt.target.value });
+    var { name, value } = evt.target;
+
+    // Converts the the value of scheduled and repeats to an integer
+    if (name === 'scheduled' || name === 'repeats') {
+      value = parseInt(value);
+      setMessageForm({ ...messageForm, [name]: parseInt(value) });
+      return;
+    }
+
+    setMessageForm({ ...messageForm, [name]: value });
   };
 
   const handleFormSubmit = (evt) => {
     evt.preventDefault();
-    console.log(messageForm);
+    console.log('Form submitted', messageForm);
+    setMessageForm({ ...defaultFormState });
   };
 
   return (
@@ -41,7 +51,9 @@ const NewMessageForm = () => {
             type="text"
             name="name"
             className="mb-4"
+            value={messageForm['name']}
             onChange={handleFormChange}
+            required
           />
           <label htmlFor="message" className={labelStyles}>
             Message
@@ -51,6 +63,8 @@ const NewMessageForm = () => {
             name="message"
             className="mb-4"
             onChange={handleFormChange}
+            value={messageForm['message']}
+            required
           />
           <label htmlFor="scheduled" className={labelStyles}>
             When to run
@@ -65,6 +79,7 @@ const NewMessageForm = () => {
                 defaultChecked={true}
                 value={0}
                 onChange={handleFormChange}
+                checked={messageForm['scheduled'] === 0}
               />
               <label
                 className="form-check-label inline-block text-gray-800 cursor-pointer"
@@ -81,6 +96,7 @@ const NewMessageForm = () => {
                 id="schedule-later"
                 value={1}
                 onChange={handleFormChange}
+                checked={messageForm['scheduled'] === 1}
               />
               <label
                 className="form-check-label inline-block text-gray-800 mb-4"
@@ -90,7 +106,7 @@ const NewMessageForm = () => {
               </label>
             </div>
           </div>
-          <div hidden={messageForm['scheduled'] == 0}>
+          <div hidden={messageForm['scheduled'] === 0}>
             <div className="flex flex-col">
               <label htmlFor="date" className={labelStyles}>
                 Date
@@ -100,6 +116,8 @@ const NewMessageForm = () => {
                 type="date"
                 className="mb-4"
                 onChange={handleFormChange}
+                required={messageForm['scheduled'] === 1}
+                value={messageForm['date']}
               />
               <label htmlFor="time" className={labelStyles}>
                 Time
@@ -109,6 +127,8 @@ const NewMessageForm = () => {
                 name="time"
                 className="mb-4"
                 onChange={handleFormChange}
+                value={messageForm['time']}
+                required={messageForm['scheduled'] === 1}
               />
             </div>
           </div>
@@ -122,7 +142,7 @@ const NewMessageForm = () => {
                 type="radio"
                 name="repeats"
                 id="repeats-false"
-                defaultChecked={true}
+                checked={messageForm['repeats'] === 0}
                 value={0}
                 onChange={handleFormChange}
               />
@@ -139,6 +159,7 @@ const NewMessageForm = () => {
                 type="radio"
                 name="repeats"
                 id="repeats-true"
+                checked={messageForm['repeats'] === 1}
                 value={1}
                 onChange={handleFormChange}
               />
@@ -150,7 +171,7 @@ const NewMessageForm = () => {
               </label>
             </div>
           </div>
-          <div hidden={messageForm['repeats'] == 0}>
+          <div hidden={messageForm['repeats'] === 0}>
             <div className="flex flex-col">
               <label htmlFor="interval-duration" className={labelStyles}>
                 How often
@@ -163,8 +184,13 @@ const NewMessageForm = () => {
                   min={1}
                   defaultValue={1}
                   onChange={handleFormChange}
+                  value={messageForm['intervalLength']}
                 />
-                <select name="intervalType" onChange={handleFormChange}>
+                <select
+                  name="intervalType"
+                  onChange={handleFormChange}
+                  value={messageForm['intervalType']}
+                >
                   <option value="SECOND">Second(s)</option>
                   <option value="MINUTE">Minute(s)</option>
                   <option value="HOUR">Hour(s)</option>
@@ -176,18 +202,18 @@ const NewMessageForm = () => {
               </div>
             </div>
           </div>
+          <div className="flex justify-center w-2/3 mx-auto">
+            <button
+              type="submit"
+              className="bg-blue-500 text-white py-2 w-40 rounded-md text-xl hover:bg-blue-800 duration-200 my-4 mx-8"
+            >
+              Schedule task
+            </button>
+            <button className="bg-red-600 text-white py-2 w-40 rounded-md text-xl hover:bg-red-700 duration-200 my-4 mx-8">
+              Cancel task
+            </button>
+          </div>
         </form>
-        <div className="flex justify-center w-2/3 mx-auto">
-          <button
-            className="bg-blue-500 text-white py-2 w-40 rounded-md text-xl hover:bg-blue-800 duration-200 my-4 mx-8"
-            onClick={handleFormSubmit}
-          >
-            Schedule task
-          </button>
-          <button className="bg-red-600 text-white py-2 w-40 rounded-md text-xl hover:bg-red-700 duration-200 my-4 mx-8">
-            Cancel task
-          </button>
-        </div>
       </div>
     </div>
   );
