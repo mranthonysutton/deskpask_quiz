@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/mranthonysutton/deskpass_quiz/api/database"
 )
 
 func welcome(c *fiber.Ctx) error {
@@ -16,6 +17,8 @@ func generateRoutes(app *fiber.App) {
 }
 
 func main() {
+	database.ConnectDatabase()
+
 	app := fiber.New()
 	generateRoutes(app)
 
