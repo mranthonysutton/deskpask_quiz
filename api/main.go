@@ -5,6 +5,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/mranthonysutton/deskpass_quiz/api/database"
+	"github.com/mranthonysutton/deskpass_quiz/api/routes"
 )
 
 func welcome(c *fiber.Ctx) error {
@@ -14,6 +15,9 @@ func welcome(c *fiber.Ctx) error {
 
 func generateRoutes(app *fiber.App) {
 	app.Get("/api", welcome)
+
+	// Message
+	app.Post("/api/v1/message", routes.CreateMessage)
 }
 
 func main() {
