@@ -17,6 +17,7 @@ func generateRoutes(app *fiber.App) {
 	app.Get("/api", welcome)
 
 	// Message
+	app.Get("/api/v1/message", routes.GetAllMessages)
 	app.Post("/api/v1/message", routes.CreateMessage)
 }
 
