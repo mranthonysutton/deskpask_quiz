@@ -19,6 +19,7 @@ type MessageSerializer struct {
 	IntervalType   string `json:"interval_type"`
 }
 
+// Formats the date and converts the values to booleans from the client
 func ParseMessageFromClient(messageModel MessageSerializer) models.Message {
 	var isScheduled bool
 	var doesRepeat bool
@@ -54,8 +55,6 @@ func CreateMessage(c *fiber.Ctx) error {
 	}
 
 	formattedMessage := ParseMessageFromClient(messageBody)
-
-	// TODO: Save the message to the database
 	database.Database.Db.Create(&formattedMessage)
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "Has been successfully posted", "data": formattedMessage})
