@@ -6,19 +6,45 @@ import (
 	"github.com/mranthonysutton/deskpass_quiz/api/utils"
 )
 
+type MessageSerializer struct {
+	ID             uint   `json:"id" gorm:"primaryKey"`
+	Name           string `json:"name"`
+	Message        string `json:"message"`
+	Scheduled      int    `json:"scheduled"`
+	Date           string `json:"date"`
+	Time           string `json:"time"`
+	Repeats        int    `json:"repeats"`
+	IntervalLength int    `json:"interval_length"`
+	IntervalType   string `json:"interval_type"`
+}
+
+func ParseMessageFromClient(messageModel MessageSerializer) models.Message {
+	var isScheduled bool
+	var doesRepeat bool
+	formattedDate, _ := utils.CreateDateTime(messageModel.Date, messageModel.Time)
+
+	if messageModel.Repeats == 1 {
+		doesRepeat = true
+	}
+
+	if messageModel.Scheduled == 1 {
+		isScheduled = true
+	}
+
+	return models.Message{Name: messageModel.Name, Message: messageModel.Message, Scheduled: isScheduled, ScheduledDate: formattedDate, Repeats: doesRepeat, IntervalLength: messageModel.IntervalLength, IntervalType: messageModel.IntervalType}
+}
+
 func CreateMessage(c *fiber.Ctx) error {
-	var message models.Message
+	var messageBody MessageSerializer
 
-	err := c.BodyParser(&message)
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	if err := c.BodyParser(&messageBody); err != nil {
+		return c.Status(fiber.StatusBadGateway).JSON(err.Error())
 	}
 
-	formattedDate, err := utils.CreateDateTime(message.Date, message.Time)
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"date_time": err.Error()})
-	}
+	formattedMessage := ParseMessageFromClient(messageBody)
 
-	return c.Status(fiber.StatusCreated).JSON(formattedDate)
+	// TODO: Save the message to the database
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "Has been successfully posted", "data": formattedMessage})
 
 }
