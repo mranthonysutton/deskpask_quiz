@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
-import axios from 'axios';
+import Axios from '../Utils/useAxios';
 
 const MessageBoard = () => {
   const [messages, SetMessages] = useState([]);
 
   useEffect(() => {
-    axios
-      .get('http://localhost:4000/api/v1/message')
+    Axios()
+      .get('/message')
       .then((data) => SetMessages(data))
       .catch((error) => console.error(error.message));
   }, []);
