@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/mranthonysutton/deskpass_quiz/api/database"
 	"github.com/mranthonysutton/deskpass_quiz/api/routes"
 )
@@ -25,6 +26,7 @@ func main() {
 	database.ConnectDatabase()
 
 	app := fiber.New()
+	app.Use(cors.New())
 	generateRoutes(app)
 
 	log.Fatal(app.Listen(":4000"))
