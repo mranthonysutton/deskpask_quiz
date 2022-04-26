@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
@@ -38,7 +39,12 @@ const NewMessageForm = () => {
 
   const handleFormSubmit = (evt) => {
     evt.preventDefault();
-    console.log('Form submitted', messageForm);
+
+    axios
+      .post('http://localhost:4000/api/v1/message', messageForm)
+      .then((response) => console.log(response))
+      .catch((error) => console.error(error.message));
+
     setMessageForm({ ...defaultFormState });
 
     navigate('/');
