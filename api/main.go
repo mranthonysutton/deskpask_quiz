@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"net/http"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -22,12 +23,18 @@ func generateRoutes(app *fiber.App) {
 	app.Post("/api/v1/message", routes.CreateMessage)
 }
 
+func generateWebSocket() {
+	http.HandleFunc("/ws", routes.WebSocketEndpoint)
+	log.Fatal(http.ListenAndServe(":8080", nil))
+}
+
 func main() {
 	database.ConnectDatabase()
 
 	app := fiber.New()
 	app.Use(cors.New())
 	generateRoutes(app)
+	generateWebSocket()
 
 	log.Fatal(app.Listen(":4000"))
 }
