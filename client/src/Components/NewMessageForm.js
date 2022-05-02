@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import useWebSocket from 'react-use-websocket';
 import Axios from '../Utils/useAxios';
 
 const NewMessageForm = () => {
@@ -18,7 +19,11 @@ const NewMessageForm = () => {
   };
 
   const [messageForm, setMessageForm] = useState(defaultFormState);
+  const socketUrl = useState('ws://localhost:8080/ws');
   const navigate = useNavigate();
+  const webSocket = useWebSocket(socketUrl, {
+    onOpen: () => console.log('OPENED'),
+  });
 
   const handleFormChange = (evt) => {
     var { name, value } = evt.target;
@@ -37,13 +42,15 @@ const NewMessageForm = () => {
     setMessageForm({ ...messageForm, [name]: value });
   };
 
-  const handleFormSubmit = (evt) => {
+  const handleFormSubmit = async (evt) => {
     evt.preventDefault();
 
-    Axios()
+    await Axios()
       .post('/message', messageForm)
       .then((response) => console.log(response))
       .catch((error) => console.error(error.message));
+
+    webSocket.sendMessage('tester', true);
 
     setMessageForm({ ...defaultFormState });
 

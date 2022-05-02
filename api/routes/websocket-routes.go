@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -16,16 +17,18 @@ var upgrader = websocket.Upgrader{
 
 func WebsocketReader(conn *websocket.Conn) {
 	for {
-		messageType, p, err := conn.ReadMessage()
+		var jsonMap map[string]interface{}
+		_, p, err := conn.ReadMessage()
 
 		if err != nil {
-			log.Println(err)
+			log.Println("FAILING HERE", err)
 			return
 		}
 
-		fmt.Printf("%v %s\n", messageType, p)
+		json.Unmarshal([]byte(p), &jsonMap)
+		fmt.Println(jsonMap)
 
-		if err := conn.WriteMessage(messageType, p); err != nil {
+		if err := conn.WriteJSON(jsonMap); err != nil {
 			log.Println(err)
 			return
 		}
