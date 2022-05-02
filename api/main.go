@@ -34,7 +34,7 @@ func main() {
 	app := fiber.New()
 	app.Use(cors.New())
 	generateRoutes(app)
-	generateWebSocket()
+	go generateWebSocket()
 
 	log.Fatal(app.Listen(":4000"))
 }

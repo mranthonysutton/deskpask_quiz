@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 
@@ -22,7 +23,7 @@ func WebsocketReader(conn *websocket.Conn) {
 			return
 		}
 
-		log.Println(messageType, p)
+		fmt.Printf("%v %s\n", messageType, p)
 
 		if err := conn.WriteMessage(messageType, p); err != nil {
 			log.Println(err)
