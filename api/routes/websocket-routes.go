@@ -18,7 +18,9 @@ var upgrader = websocket.Upgrader{
 func WebsocketReader(conn *websocket.Conn) {
 	for {
 		var jsonMap map[string]interface{}
-		_, p, err := conn.ReadMessage()
+		dataMessage, p, err := conn.ReadMessage()
+
+		log.Println("DATA MESSAGE", dataMessage)
 
 		if err != nil {
 			log.Println("FAILING HERE", err)
@@ -35,12 +37,10 @@ func WebsocketReader(conn *websocket.Conn) {
 	}
 }
 func WebSocketEndpoint(w http.ResponseWriter, r *http.Request) {
-	log.Println("WEBSOCKET")
 	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Println(err.Error())
 	}
 
-	log.Println("Client succesfully connected...")
 	WebsocketReader(ws)
 }

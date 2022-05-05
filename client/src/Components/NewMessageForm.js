@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import useWebSocket from 'react-use-websocket';
+import { w3cwebsocket as W3CWebSocket } from 'websocket';
 import Axios from '../Utils/useAxios';
 
 const NewMessageForm = () => {
@@ -19,11 +19,24 @@ const NewMessageForm = () => {
   };
 
   const [messageForm, setMessageForm] = useState(defaultFormState);
-  const socketUrl = useState('ws://localhost:8080/ws');
+  const socketUrl = 'ws://localhost:8080/ws';
+  const client = new W3CWebSocket(socketUrl);
   const navigate = useNavigate();
-  const webSocket = useWebSocket(socketUrl, {
-    onOpen: () => console.log('OPENED'),
-  });
+
+  useEffect(() => {
+    client.onopen = () => {
+      console.log('connected');
+    };
+  }, []);
+
+  client.onmessage = (message) => {
+    const jsonData = JSON.parse(message.data);
+    console.log('Got the data --> ', jsonData);
+  };
+
+  client.onerror = (error) => {
+    console.error(error);
+  };
 
   const handleFormChange = (evt) => {
     var { name, value } = evt.target;
@@ -50,7 +63,7 @@ const NewMessageForm = () => {
       .then((response) => console.log(response))
       .catch((error) => console.error(error.message));
 
-    webSocket.sendMessage('tester', true);
+    client.send(JSON.stringify({ type: 'message', message: messageForm }));
 
     setMessageForm({ ...defaultFormState });
 
