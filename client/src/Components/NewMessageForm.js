@@ -1,9 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { w3cwebsocket as W3CWebSocket } from 'websocket';
 import Axios from '../Utils/useAxios';
 
-const NewMessageForm = () => {
+const NewMessageForm = (props) => {
   const labelStyles = 'uppercase text-sm opacity-80 font-bold';
 
   // Sets the default values of the form
@@ -19,24 +18,7 @@ const NewMessageForm = () => {
   };
 
   const [messageForm, setMessageForm] = useState(defaultFormState);
-  const socketUrl = 'ws://localhost:8080/ws';
-  const client = new W3CWebSocket(socketUrl);
   const navigate = useNavigate();
-
-  useEffect(() => {
-    client.onopen = () => {
-      console.log('connected');
-    };
-  }, []);
-
-  client.onmessage = (message) => {
-    const jsonData = JSON.parse(message.data);
-    console.log('Got the data --> ', jsonData);
-  };
-
-  client.onerror = (error) => {
-    console.error(error);
-  };
 
   const handleFormChange = (evt) => {
     var { name, value } = evt.target;
@@ -63,7 +45,9 @@ const NewMessageForm = () => {
       .then((response) => console.log(response))
       .catch((error) => console.error(error.message));
 
-    client.send(JSON.stringify({ type: 'message', message: messageForm }));
+    props.client.send(
+      JSON.stringify({ type: 'message', message: messageForm })
+    );
 
     setMessageForm({ ...defaultFormState });
 
