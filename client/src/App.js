@@ -10,11 +10,10 @@ import { w3cwebsocket as W3CWebSocket } from 'websocket';
 function App() {
   const [isBannerHidden, setIsBannerHidden] = useState(true);
   const socketUrl = 'ws://localhost:8080/ws';
-  const client = new W3CWebSocket(socketUrl);
+  var client = new W3CWebSocket(socketUrl);
 
   client.onmessage = (message) => {
-    const jsonData = JSON.parse(message.data);
-    console.log('Got the data --> ', jsonData);
+    JSON.parse(message.data);
     setIsBannerHidden(false);
 
     setTimeout(() => {
@@ -23,7 +22,7 @@ function App() {
   };
 
   client.onerror = (error) => {
-    console.error(error);
+    console.error('ERROR:', error);
   };
 
   // Sets the amount of time the banner is displayed for 2.5 seconds

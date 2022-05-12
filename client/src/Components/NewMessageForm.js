@@ -5,6 +5,8 @@ import Axios from '../Utils/useAxios';
 const NewMessageForm = (props) => {
   const labelStyles = 'uppercase text-sm opacity-80 font-bold';
 
+  console.log(props.client.readyState);
+
   // Sets the default values of the form
   const defaultFormState = {
     name: '',
@@ -43,7 +45,7 @@ const NewMessageForm = (props) => {
     await Axios()
       .post('/message', messageForm)
       .then((response) => console.log(response))
-      .catch((error) => console.error(error.message));
+      .catch((error) => console.error('ERROR:', error.message));
 
     props.client.send(
       JSON.stringify({ type: 'message', message: messageForm })
