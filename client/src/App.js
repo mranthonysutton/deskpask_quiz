@@ -14,8 +14,10 @@ function App() {
 
   client.onmessage = (message) => {
     JSON.parse(message.data);
+
     setIsBannerHidden(false);
 
+    // Sets the amount of time the banner is displayed for 2.5 seconds
     setTimeout(() => {
       setIsBannerHidden(true);
     }, 2500);
@@ -25,7 +27,6 @@ function App() {
     console.error('ERROR:', error);
   };
 
-  // Sets the amount of time the banner is displayed for 2.5 seconds
   return (
     <div>
       <Navbar />

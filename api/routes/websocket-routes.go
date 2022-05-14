@@ -33,7 +33,7 @@ func WebsocketReader(conn *websocket.Conn) {
 		messageMapper := jsonMap["message"]
 
 		if messageMapper.Repeats == 1 {
-			scheduleCronJob(messageMapper)
+			scheduleCronJob(messageMapper, conn)
 		}
 
 		if err := conn.WriteJSON(jsonMap); err != nil {
@@ -52,17 +52,17 @@ func WebSocketEndpoint(w http.ResponseWriter, r *http.Request) {
 	WebsocketReader(ws)
 }
 
-func scheduleCronJob(message MessageSerializer) {
+func scheduleCronJob(message MessageSerializer, conn *websocket.Conn) {
 	s := gocron.NewScheduler(time.UTC)
 	s.StartAsync()
 
 	switch {
 	case message.IntervalType == "SECOND":
 		s.Every(message.IntervalLength).Seconds().Do(func() {
-			log.Println("SECONDS")
+			conn.WriteJSON(message)
 		})
 	case message.IntervalType == "MINUTE":
-		s.Every(message.IntervalLength).Seconds().Do(func() {
+		s.Every(message.IntervalLength).Minutes().Do(func() {
 			log.Println("MINUTES")
 		})
 	case message.IntervalType == "HOUR":

@@ -15,8 +15,8 @@ const NewMessageForm = (props) => {
     date: '',
     time: '',
     repeats: 0,
-    intervalLength: 1,
-    intervalType: 'SECOND',
+    interval_length: 1,
+    interval_type: 'SECOND',
   };
 
   const [messageForm, setMessageForm] = useState(defaultFormState);
@@ -29,7 +29,7 @@ const NewMessageForm = (props) => {
     if (
       name === 'scheduled' ||
       name === 'repeats' ||
-      name === 'intervalLength'
+      name === 'interval_length'
     ) {
       value = parseInt(value);
       setMessageForm({ ...messageForm, [name]: parseInt(value) });
@@ -198,16 +198,16 @@ const NewMessageForm = (props) => {
               <div>
                 <input
                   type="number"
-                  name="intervalLength"
+                  name="interval_length"
                   className="mb-4"
                   min={1}
                   onChange={handleFormChange}
-                  value={messageForm['intervalLength']}
+                  value={messageForm['interval_length']}
                 />
                 <select
-                  name="intervalType"
+                  name="interval_type"
                   onChange={handleFormChange}
-                  value={messageForm['intervalType']}
+                  value={messageForm['interval_type']}
                 >
                   <option value="SECOND">Second(s)</option>
                   <option value="MINUTE">Minute(s)</option>
