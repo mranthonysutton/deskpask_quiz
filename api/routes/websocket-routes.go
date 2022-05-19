@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-co-op/gocron"
 	"github.com/gorilla/websocket"
+	"github.com/mranthonysutton/deskpass_quiz/api/utils"
 )
 
 var upgrader = websocket.Upgrader{
@@ -33,6 +34,10 @@ func WebsocketReader(conn *websocket.Conn) {
 		messageMapper := jsonMap["message"]
 
 		if messageMapper.Repeats == 1 {
+			repeatableCronJob(messageMapper, conn)
+		}
+
+		if messageMapper.Scheduled == 1 {
 			scheduleCronJob(messageMapper, conn)
 		}
 
@@ -56,6 +61,25 @@ func scheduleCronJob(message MessageSerializer, conn *websocket.Conn) {
 	s := gocron.NewScheduler(time.UTC)
 	s.StartAsync()
 
+	tempTime, err := utils.CreateDateTime(message.Date, message.Time)
+
+	if err != nil {
+		log.Println(err.Error())
+	}
+
+	// Converts time to 24-hour clock to be read by go-cron
+	formattedTime := tempTime.Format("15:04:05")
+
+	s.Every(1).Day().At(formattedTime).Do(func() {
+		conn.WriteJSON(message)
+	})
+
+}
+
+func repeatableCronJob(message MessageSerializer, conn *websocket.Conn) {
+	s := gocron.NewScheduler(time.UTC)
+	s.StartAsync()
+
 	switch {
 	case message.IntervalType == "SECOND":
 		s.Every(message.IntervalLength).Seconds().Do(func() {
@@ -63,27 +87,27 @@ func scheduleCronJob(message MessageSerializer, conn *websocket.Conn) {
 		})
 	case message.IntervalType == "MINUTE":
 		s.Every(message.IntervalLength).Minutes().Do(func() {
-			log.Println("MINUTES")
+			conn.WriteJSON(message)
 		})
 	case message.IntervalType == "HOUR":
 		s.Every(message.IntervalLength).Hours().Do(func() {
-			log.Println("HOURS")
+			conn.WriteJSON(message)
 		})
 	case message.IntervalType == "DAY":
 		s.Every(message.IntervalLength).Days().Do(func() {
-			log.Println("DAYS")
+			conn.WriteJSON(message)
 		})
 	case message.IntervalType == "WEEK":
 		s.Every(message.IntervalLength).Weeks().Do(func() {
-			log.Println("WEEKS")
+			conn.WriteJSON(message)
 		})
 	case message.IntervalType == "MONTH":
 		s.Every(message.IntervalLength).Months().Do(func() {
-			log.Println("MONTHS")
+			conn.WriteJSON(message)
 		})
 	case message.IntervalType == "YEAR":
 		s.Every(message.IntervalLength * 12).Months().Do(func() {
-			log.Println("YEARS")
+			conn.WriteJSON(message)
 		})
 	}
 }
