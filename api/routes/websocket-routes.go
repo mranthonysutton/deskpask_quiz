@@ -41,6 +41,9 @@ func WebsocketReader(conn *websocket.Conn) {
 			scheduleCronJob(messageMapper, conn)
 		}
 
+		//TODO: Setup logic when repeats and scheduled both are entered
+		// Currently it will schedule the cron job, but will also setup a repeatable instead of wait for the schedule to start the repeatable
+
 		if err := conn.WriteJSON(jsonMap); err != nil {
 			log.Println(err)
 			return
@@ -58,19 +61,21 @@ func WebSocketEndpoint(w http.ResponseWriter, r *http.Request) {
 }
 
 func scheduleCronJob(message MessageSerializer, conn *websocket.Conn) {
-	s := gocron.NewScheduler(time.UTC)
-	s.StartAsync()
-
 	tempTime, err := utils.CreateDateTime(message.Date, message.Time)
 
 	if err != nil {
 		log.Println(err.Error())
 	}
 
+	time.Sleep(time.Until(tempTime))
+
+	s := gocron.NewScheduler(time.UTC)
+	s.StartAsync()
+
 	// Converts time to 24-hour clock to be read by go-cron
 	formattedTime := tempTime.Format("15:04:05")
 
-	s.Every(1).Day().At(formattedTime).Do(func() {
+	s.Every(0).Day().At(formattedTime).Do(func() {
 		conn.WriteJSON(message)
 	})
 
