@@ -18,6 +18,9 @@ var upgrader = websocket.Upgrader{
 }
 
 func WebsocketReader(conn *websocket.Conn) {
+	s := gocron.NewScheduler(time.UTC)
+	s.StartAsync()
+
 	for {
 		var jsonMap map[string]MessageSerializer
 		dataMessage, p, err := conn.ReadMessage()
@@ -34,13 +37,15 @@ func WebsocketReader(conn *websocket.Conn) {
 		messageMapper := jsonMap["message"]
 
 		if messageMapper.Repeats == 1 {
-			repeatableCronJob(messageMapper, conn)
+			repeatableCronJob(messageMapper, conn, s)
 		}
 
 		if messageMapper.Scheduled == 1 {
-			scheduleCronJob(messageMapper, conn)
+			scheduleCronJob(messageMapper, conn, s)
 		}
 
+		//TODO: Jobs can be scheduled concurrently, but if a job is scheduled and a new job needs to be ran immediately
+		// The immediate job won't run until the scheduled job has been completed
 		//TODO: Setup logic when repeats and scheduled both are entered
 		// Currently it will schedule the cron job, but will also setup a repeatable instead of wait for the schedule to start the repeatable
 
@@ -60,7 +65,7 @@ func WebSocketEndpoint(w http.ResponseWriter, r *http.Request) {
 	WebsocketReader(ws)
 }
 
-func scheduleCronJob(message MessageSerializer, conn *websocket.Conn) {
+func scheduleCronJob(message MessageSerializer, conn *websocket.Conn, scheduler *gocron.Scheduler) {
 	tempTime, err := utils.CreateDateTime(message.Date, message.Time)
 
 	if err != nil {
@@ -69,49 +74,43 @@ func scheduleCronJob(message MessageSerializer, conn *websocket.Conn) {
 
 	time.Sleep(time.Until(tempTime))
 
-	s := gocron.NewScheduler(time.UTC)
-	s.StartAsync()
-
 	// Converts time to 24-hour clock to be read by go-cron
 	formattedTime := tempTime.Format("15:04:05")
 
-	s.Every(0).Day().At(formattedTime).Do(func() {
+	scheduler.Every(0).Day().At(formattedTime).Do(func() {
 		conn.WriteJSON(message)
 	})
 
 }
 
-func repeatableCronJob(message MessageSerializer, conn *websocket.Conn) {
-	s := gocron.NewScheduler(time.UTC)
-	s.StartAsync()
-
+func repeatableCronJob(message MessageSerializer, conn *websocket.Conn, scheduler *gocron.Scheduler) {
 	switch {
 	case message.IntervalType == "SECOND":
-		s.Every(message.IntervalLength).Seconds().Do(func() {
+		scheduler.Every(message.IntervalLength).Seconds().Do(func() {
 			conn.WriteJSON(message)
 		})
 	case message.IntervalType == "MINUTE":
-		s.Every(message.IntervalLength).Minutes().Do(func() {
+		scheduler.Every(message.IntervalLength).Minutes().Do(func() {
 			conn.WriteJSON(message)
 		})
 	case message.IntervalType == "HOUR":
-		s.Every(message.IntervalLength).Hours().Do(func() {
+		scheduler.Every(message.IntervalLength).Hours().Do(func() {
 			conn.WriteJSON(message)
 		})
 	case message.IntervalType == "DAY":
-		s.Every(message.IntervalLength).Days().Do(func() {
+		scheduler.Every(message.IntervalLength).Days().Do(func() {
 			conn.WriteJSON(message)
 		})
 	case message.IntervalType == "WEEK":
-		s.Every(message.IntervalLength).Weeks().Do(func() {
+		scheduler.Every(message.IntervalLength).Weeks().Do(func() {
 			conn.WriteJSON(message)
 		})
 	case message.IntervalType == "MONTH":
-		s.Every(message.IntervalLength).Months().Do(func() {
+		scheduler.Every(message.IntervalLength).Months().Do(func() {
 			conn.WriteJSON(message)
 		})
 	case message.IntervalType == "YEAR":
-		s.Every(message.IntervalLength * 12).Months().Do(func() {
+		scheduler.Every(message.IntervalLength * 12).Months().Do(func() {
 			conn.WriteJSON(message)
 		})
 	}
