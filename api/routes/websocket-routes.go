@@ -21,6 +21,14 @@ func WebsocketReader(conn *websocket.Conn) {
 	s := gocron.NewScheduler(time.UTC)
 	s.StartAsync()
 
+	messageChannel := make(chan MessageSerializer)
+
+	go func() {
+		receivedMessage := <-messageChannel
+		log.Println("MESSAGE RECEIVED FROM CHANNEL", receivedMessage)
+		conn.WriteJSON(receivedMessage)
+	}()
+
 	for {
 		var jsonMap map[string]MessageSerializer
 		dataMessage, p, err := conn.ReadMessage()
@@ -35,6 +43,10 @@ func WebsocketReader(conn *websocket.Conn) {
 		// Converts the JSON object to a type that golang can reference
 		json.Unmarshal([]byte(p), &jsonMap)
 		messageMapper := jsonMap["message"]
+
+		go func() {
+			messageChannel <- messageMapper
+		}()
 
 		if messageMapper.Repeats == 1 {
 			repeatableCronJob(messageMapper, conn, s)
