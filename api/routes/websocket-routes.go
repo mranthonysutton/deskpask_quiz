@@ -17,11 +17,9 @@ var upgrader = websocket.Upgrader{
 	CheckOrigin:     func(r *http.Request) bool { return true },
 }
 
-func WebsocketReader(conn *websocket.Conn) {
+func WebsocketReader(conn *websocket.Conn, messageChannel chan (MessageSerializer)) {
 	s := gocron.NewScheduler(time.UTC)
 	s.StartAsync()
-
-	messageChannel := make(chan MessageSerializer)
 
 	go func() {
 		receivedMessage := <-messageChannel
@@ -31,9 +29,7 @@ func WebsocketReader(conn *websocket.Conn) {
 
 	for {
 		var jsonMap map[string]MessageSerializer
-		dataMessage, p, err := conn.ReadMessage()
-
-		log.Println("MESSAGE RECEIVED", dataMessage)
+		_, p, err := conn.ReadMessage()
 
 		if err != nil {
 			log.Printf("ERROR: %v", err)
@@ -44,27 +40,21 @@ func WebsocketReader(conn *websocket.Conn) {
 		json.Unmarshal([]byte(p), &jsonMap)
 		messageMapper := jsonMap["message"]
 
-		go func() {
-			messageChannel <- messageMapper
-		}()
-
 		if messageMapper.Repeats == 1 {
 			repeatableCronJob(messageMapper, conn, s)
 		}
 
 		if messageMapper.Scheduled == 1 {
-			scheduleCronJob(messageMapper, conn, s)
+			scheduleCronJob(messageMapper, conn, s, messageChannel)
 		}
 
 		//TODO: Jobs can be scheduled concurrently, but if a job is scheduled and a new job needs to be ran immediately
 		// The immediate job won't run until the scheduled job has been completed
 		//TODO: Setup logic when repeats and scheduled both are entered
 		// Currently it will schedule the cron job, but will also setup a repeatable instead of wait for the schedule to start the repeatable
-
-		if err := conn.WriteJSON(jsonMap); err != nil {
-			log.Println(err)
-			return
-		}
+		go func() {
+			messageChannel <- messageMapper
+		}()
 	}
 }
 
@@ -74,22 +64,26 @@ func WebSocketEndpoint(w http.ResponseWriter, r *http.Request) {
 		log.Println(err.Error())
 	}
 
-	WebsocketReader(ws)
+	messageChannel := make(chan MessageSerializer)
+
+	WebsocketReader(ws, messageChannel)
 }
 
-func scheduleCronJob(message MessageSerializer, conn *websocket.Conn, scheduler *gocron.Scheduler) {
+func scheduleCronJob(message MessageSerializer, conn *websocket.Conn, scheduler *gocron.Scheduler, messageChannel chan (MessageSerializer)) {
 	tempTime, err := utils.CreateDateTime(message.Date, message.Time)
 
 	if err != nil {
 		log.Println(err.Error())
 	}
 
-	time.Sleep(time.Until(tempTime))
+	log.Println("TEMPTIME:", tempTime)
 
 	// Converts time to 24-hour clock to be read by go-cron
 	formattedTime := tempTime.Format("15:04:05")
 
+	// TODO: Figure out why this isn't running
 	scheduler.Every(0).Day().At(formattedTime).Do(func() {
+		log.Println("Scheduled", message)
 		conn.WriteJSON(message)
 	})
 
