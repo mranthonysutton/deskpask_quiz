@@ -27,6 +27,9 @@ func WebsocketReader(conn *websocket.Conn, messageChannel chan (MessageSerialize
 		conn.WriteJSON(receivedMessage)
 	}()
 
+	//allChannelMessages := <-messageChannel
+	//log.Println(allChannelMessages)
+
 	for {
 		var jsonMap map[string]MessageSerializer
 		_, p, err := conn.ReadMessage()
@@ -41,11 +44,13 @@ func WebsocketReader(conn *websocket.Conn, messageChannel chan (MessageSerialize
 		messageMapper := jsonMap["message"]
 
 		if messageMapper.Repeats == 1 {
-			repeatableCronJob(messageMapper, conn, s)
+			go repeatableCronJob(messageMapper, conn, s, messageChannel)
+			return
 		}
 
 		if messageMapper.Scheduled == 1 {
 			scheduleCronJob(messageMapper, conn, s, messageChannel)
+			return
 		}
 
 		//TODO: Jobs can be scheduled concurrently, but if a job is scheduled and a new job needs to be ran immediately
@@ -76,24 +81,26 @@ func scheduleCronJob(message MessageSerializer, conn *websocket.Conn, scheduler 
 		log.Println(err.Error())
 	}
 
-	log.Println("TEMPTIME:", tempTime)
-
 	// Converts time to 24-hour clock to be read by go-cron
 	formattedTime := tempTime.Format("15:04:05")
 
 	// TODO: Figure out why this isn't running
 	scheduler.Every(0).Day().At(formattedTime).Do(func() {
-		log.Println("Scheduled", message)
-		conn.WriteJSON(message)
+		go func() {
+			messageChannel <- message
+		}()
 	})
 
 }
 
-func repeatableCronJob(message MessageSerializer, conn *websocket.Conn, scheduler *gocron.Scheduler) {
+func repeatableCronJob(message MessageSerializer, conn *websocket.Conn, scheduler *gocron.Scheduler, messageChannel chan (MessageSerializer)) {
 	switch {
 	case message.IntervalType == "SECOND":
 		scheduler.Every(message.IntervalLength).Seconds().Do(func() {
-			conn.WriteJSON(message)
+			go func() {
+				log.Printf("Message: %v, send to channel: %v", message, messageChannel)
+				messageChannel <- message
+			}()
 		})
 	case message.IntervalType == "MINUTE":
 		scheduler.Every(message.IntervalLength).Minutes().Do(func() {
