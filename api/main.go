@@ -10,11 +10,13 @@ import (
 	"github.com/mranthonysutton/deskpass_quiz/api/routes"
 )
 
+// Quick route that verifies that the API is running
 func welcome(c *fiber.Ctx) error {
 	message := &fiber.Map{"api": "Is up and running..."}
 	return c.Status(fiber.StatusOK).JSON(message)
 }
 
+// Generates all the routes and their endpoints
 func generateRoutes(app *fiber.App) {
 	app.Get("/api", welcome)
 
@@ -23,6 +25,7 @@ func generateRoutes(app *fiber.App) {
 	app.Post("/api/v1/message", routes.CreateMessage)
 }
 
+// Creates the websocket and its endpoint
 func generateWebSocket() {
 	http.HandleFunc("/ws", routes.WebSocketEndpoint)
 	log.Fatal(http.ListenAndServe(":8080", nil))

@@ -5,6 +5,7 @@ import (
 	"time"
 )
 
+// creates a DateTime that is read in PST time and returns an error if the date time could not be converted
 func CreateDateTime(inputDate string, inputTime string) (time.Time, error) {
 	rawDateTime := inputDate + " " + inputTime
 

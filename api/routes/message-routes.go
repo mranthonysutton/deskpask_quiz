@@ -36,6 +36,7 @@ func ParseMessageFromClient(messageModel MessageSerializer) models.Message {
 	return models.Message{Name: messageModel.Name, Message: messageModel.Message, Scheduled: isScheduled, ScheduledDate: formattedDate, Repeats: doesRepeat, IntervalLength: messageModel.IntervalLength, IntervalType: messageModel.IntervalType}
 }
 
+// Gets all of the messages from the database and returns them in a JSON response
 func GetAllMessages(c *fiber.Ctx) error {
 	messages := []models.Message{}
 	database.Database.Db.Find(&messages)
@@ -47,6 +48,7 @@ func GetAllMessages(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(messages)
 }
 
+// Creates a new message and returns a JSON response with the newly created message
 func CreateMessage(c *fiber.Ctx) error {
 	var messageBody MessageSerializer
 
